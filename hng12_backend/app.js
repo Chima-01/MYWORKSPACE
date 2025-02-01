@@ -9,7 +9,7 @@ app.get('/', (req, res) => {
   const date = new Date();
 
   res.status(200).json({
-    email: 'divinechima76@gmail.com',
+    email: 'chimachinemerem4@gmail.com',
     current_datetime: date.toDateString(),
     github_url: "https://github.com/Chima-01/MYWORKSPACE/hng12_backend"
   });
