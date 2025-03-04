@@ -1,9 +1,12 @@
 import { Router } from "express";
+import { signup, login, allUsers, deleteUser } from "../controller/user_controller";
+import { verifyUser, verifyAdmin } from '../miidle_ware/verify_user'
 
 const router = Router();
 
-router.post('/signup');
-router.post('/login');
-router.delete('/delete');
+router.get('/', verifyAdmin, allUsers);
+router.post('/signup', signup);
+router.post('/login', login);
+router.delete('/delete', verifyAdmin, deleteUser);
 
 export default router;

@@ -1,0 +1,6 @@
+env
+.env
+temp
+nohup.out
+node_modules
+dist
