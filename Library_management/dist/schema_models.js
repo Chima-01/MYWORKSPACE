@@ -9,98 +9,99 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.genreSchema = exports.authorSchema = exports.bookSchema = exports.userSchema = void 0;
+exports.bookSchema = exports.userSchema = void 0;
 const sdk_1 = require("quikdb-cli-beta/v1/sdk");
 const quikdb = new sdk_1.QuikDB();
+(() => __awaiter(void 0, void 0, void 0, function* () { return yield quikdb.init(); }))();
 const userSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield quikdb.init();
-    const schemaName = 'User';
+    console.log("I am in userschema");
+    const schemaName = 'UserSchema';
     const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
         { name: 'firstname', unique: false, fieldType: 'Text' },
         { name: 'lastname', unique: false, fieldType: 'Text' },
         { name: 'email', unique: true, fieldType: 'Text' },
         { name: 'password', unique: false, fieldType: 'Text' },
+        { name: 'Role', unique: false, fieldType: 'Text' },
     ];
-    const indexes = ['Id'];
+    const indexes = ['email'];
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
     console.log('User Schema created!');
+    return createResult;
 });
 exports.userSchema = userSchema;
 const bookSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    const schemaName = 'Book';
+    yield quikdb.init();
+    const schemaName = 'BookSchema';
     const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
         { name: 'title', unique: false, fieldType: 'Text' },
-        { name: 'author_id', unique: false, fieldType: 'Text' },
-        { name: 'genre_id', unique: false, fieldType: 'Text' },
-        { name: 'available_copies', unique: false, fieldType: 'Int' },
-        { name: 'published_year', unique: false, fieldType: 'Int' },
-        { name: 'isbn', unique: false, fieldType: 'Text' },
+        { name: 'author', unique: false, fieldType: 'Text' },
+        { name: 'genre', unique: false, fieldType: 'Text' },
+        { name: 'available_copies', unique: false, fieldType: 'Text' },
+        { name: 'published_year', unique: false, fieldType: 'Text' },
+        { name: 'isbn', unique: true, fieldType: 'Text' },
     ];
-    const indexes = ['Id'];
+    const indexes = ['title'];
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
     console.log('Book Schema created!');
+    return createResult;
 });
 exports.bookSchema = bookSchema;
-const authorSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    const schemaName = 'Author';
-    const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
-        { name: 'author_name', unique: false, fieldType: 'Text' },
-        { name: 'bio', unique: false, fieldType: 'Text' },
-    ];
-    const indexes = ['Id'];
-    // Create schema
-    const args = [schemaName, fields, indexes];
-    const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('Author Schema created!');
-});
-exports.authorSchema = authorSchema;
-const genreSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    const schemaName = 'Genre';
-    const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
-        { name: 'genre_name', unique: false, fieldType: 'Text' },
-    ];
-    const indexes = ['Id'];
-    // Create schema
-    const args = [schemaName, fields, indexes];
-    const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('Genre Schema created!');
-});
-exports.genreSchema = genreSchema;
+// const authorSchema = async () => {
+//   const schemaName = 'AuthorSchema';
+//     const fields = [
+//       { name: 'author_name', unique: false, fieldType: 'Text' },
+//       { name: 'bio', unique: false, fieldType: 'Text' },
+//     ];
+//     const indexes = ['Id'];
+//     // Create schema
+//     const args: CreateSchemaArgs = [schemaName, fields, indexes];
+//     const createResult = await quikdb.callCanisterMethod(CanisterMethod.CreateSchema, args);
+//     console.log('Author Schema created!');
+//     return createResult;
+// }
+// const genreSchema = async () => {
+//   const schemaName = 'GenreSchema';
+//     const fields = [
+//       { name: 'genre_name', unique: false, fieldType: 'Text' },
+//     ];
+//     const indexes = ['genre_name'];
+//     // Create schema
+//     const args: CreateSchemaArgs = [schemaName, fields, indexes];
+//     const createResult = await quikdb.callCanisterMethod(CanisterMethod.CreateSchema, args);
+//     console.log('Genre Schema created!');
+//     return createResult;
+// }
 const borrowerSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    const schemaName = 'Borrower';
+    const schemaName = 'BorrowerSchema';
     const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
         { name: 'name', unique: false, fieldType: 'Text' },
         { name: 'phonenumber', unique: false, fieldType: 'Text' },
         { name: 'address', unique: false, fieldType: 'Text' }
     ];
-    const indexes = ['Id'];
+    const indexes = ['name'];
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('User Schema created!');
+    console.log(`borrower schema created`);
+    return createResult;
 });
 const borrowSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    const schemaName = 'Borrow';
+    const schemaName = 'BorrowSchema';
     const fields = [
-        { name: 'Id', unique: true, fieldType: 'Text' },
         { name: 'book_id', unique: false, fieldType: 'Text' },
         { name: 'borrower_id', unique: false, fieldType: 'Text' },
         { name: 'date', unique: false, fieldType: 'Text' },
         { name: 'due_date', unique: false, fieldType: 'Text' },
         { name: 'returned', unique: false, fieldType: 'Bool' }
     ];
-    const indexes = ['Id'];
+    const indexes = ['borrower_id'];
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('User Schema created!');
+    console.log('borrow Schema created!');
+    return createResult;
 });
