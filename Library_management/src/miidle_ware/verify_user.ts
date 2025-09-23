@@ -12,7 +12,10 @@ export const verifyUser = (req: Request, res: Response, next: NextFunction): voi
     return;
   }
 
-  jwt.verify(token, secret_key as string, (err, decoded: any) => {
+  console.log(token);
+
+  jwt.verify(token, secret_key, (err, decoded: any) => {
+    console.log(decoded);
 
   if (err || !(decoded.id && decoded.role)) {
     return res.status(401).json({ success: false, error: 'Unauthorized Access!' });

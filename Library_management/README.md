@@ -46,7 +46,19 @@ POST http://localhost:5000/signup
 Content-Type: application/json
 
 {
-  "username": "john_doe",
+  "firstname": "john",
+  "lastname": "doe",
+  "email": "john@example.com",
+  "password": "securepassword"
+}
+```
+
+### Login 
+```sh
+POST http://localhost:5000/signup
+Content-Type: application/json
+
+{
   "email": "john@example.com",
   "password": "securepassword"
 }

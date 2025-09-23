@@ -14,7 +14,6 @@ const sdk_1 = require("quikdb-cli-beta/v1/sdk");
 const quikdb = new sdk_1.QuikDB();
 (() => __awaiter(void 0, void 0, void 0, function* () { return yield quikdb.init(); }))();
 const userSchema = () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("I am in userschema");
     const schemaName = 'UserSchema';
     const fields = [
         { name: 'firstname', unique: false, fieldType: 'Text' },
@@ -27,7 +26,6 @@ const userSchema = () => __awaiter(void 0, void 0, void 0, function* () {
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('User Schema created!');
     return createResult;
 });
 exports.userSchema = userSchema;
@@ -46,7 +44,6 @@ const bookSchema = () => __awaiter(void 0, void 0, void 0, function* () {
     // Create schema
     const args = [schemaName, fields, indexes];
     const createResult = yield quikdb.callCanisterMethod(sdk_1.CanisterMethod.CreateSchema, args);
-    console.log('Book Schema created!');
     return createResult;
 });
 exports.bookSchema = bookSchema;

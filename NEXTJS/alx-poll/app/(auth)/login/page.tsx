@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -28,6 +28,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
+      console.log(err);
       setError('An unexpected error occurred.');
     }
   };

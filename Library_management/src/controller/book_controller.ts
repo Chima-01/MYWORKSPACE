@@ -98,28 +98,32 @@ export const createBook = async(req: Request, res: Response): Promise<any> => {
 }
 
 export const updateBook = async(req: Request, res: Response): Promise<any> => {
-  const { bookId } = req.params;
+  try {
+    const { bookId } = req.params;
 
-  if (!validate(bookId)) {
-    return res.status(400).json({ success: false, error: `${bookId} not valid!`});
+    if (!validate(bookId)) {
+      return res.status(400).json({ success: false, error: `${bookId} not valid!`});
+    }
+
+    const data: { [key: string]: any } = req.body;
+    const updatedFields: [string, string][] = fields
+    .filter(field => data[field])
+    .map(field => [field, String(data[field])]);
+
+    const updateDataArgs: UpdateDataArgs = [schemaName, bookId, updatedFields];
+    const updateResult: ResultBool = await quikdb.callCanisterMethod(CanisterMethod.UpdateData, updateDataArgs);
+
+    if ("ok" in updateResult) {
+      console.log('Record updated successfully.');
+      return res.status(201).json({ success: true, data: `${bookId} updated successfully!`});
+    }
+
+     console.error(`Error: ${updateResult.err}`);
+     return res.status(500).json({ success: false, data: `${bookId} wasn't updated`});
+  } catch (error) {
+    return res.status(500).json({ success: false, error: `An Error occured in server: ${error}` });
   }
-
-  const data: { [key: string]: any } = req.body;
-  const updatedFields: [string, string][] = fields
-  .filter(field => data[field])
-  .map(field => [field, String(data[field])]);
-
-  const updateDataArgs: UpdateDataArgs = [schemaName, bookId, updatedFields];
-  const updateResult: ResultBool = await quikdb.callCanisterMethod(CanisterMethod.UpdateData, updateDataArgs);
-
-  if ("ok" in updateResult) {
-    console.log('Record updated successfully.');
-    return res.status(201).json({ success: true, data: `${bookId} updated successfully!`});
   }
-
-  console.error(`Error: ${updateResult.err}`);
-  return res.status(500).json({ success: false, data: `${bookId} wasn't updated`});
-}
 
 export const deleteBook = async(req: Request, res: Response): Promise<any> => {
   const { bookId } = req.params;
@@ -141,32 +145,36 @@ export const deleteBook = async(req: Request, res: Response): Promise<any> => {
 }
 
 export const searchBooks = async(req: Request, res: Response): Promise<any> => {
-  const searchQuery = ["title", "author", "genre"];
-  const query = req.query;
+  try {
+    const searchQuery = ["title", "author", "genre"];
+    const query = req.query;
 
-  const getQuery: [string, string][] = searchQuery
-  .filter((index) => query[index] !== undefined)
-  .map(index => [index.toLocaleLowerCase(), query[index]?.toString() || ""]);
+    const getQuery: [string, string][] = searchQuery
+    .filter((index) => query[index] !== undefined)
+    .map(index => [index, String(query[index]).toLocaleLowerCase() || ""]);
 
-  if (getQuery.length === 0) {
-    return res.status(400).json({ success: false, error: `Query not recognised`})
-  }
-
-  if (getQuery.length === 1 && getQuery[0][0] === "title") {
-    const searchByIndexArgs: SearchByIndexArgs = [schemaName, 'title', getQuery[0][1]];
-    const searchResult: ResultRecords = await quikdb.callCanisterMethod(CanisterMethod.SearchByIndex, searchByIndexArgs);
-
-    if ("ok" in searchResult) {
-      console.log(searchResult);
-      const records = searchResult.ok.map((record) => {
-        convertToObject(record.id, record.fields);
-      });
-      return res.status(200).json({ success: true, data: records });
+    console.log(getQuery);
+    if (getQuery.length === 0) {
+      return res.status(400).json({ success: false, error: `Query not recognised`})
     }
-      return res.status(404).json({ success: false, error: `${searchResult.err}`});
+
+    if (getQuery.length === 1 && getQuery[0][0] === "title") {
+      const searchByIndexArgs: SearchByIndexArgs = [schemaName, 'title', getQuery[0][1]];
+      const searchResult: ResultRecords = await quikdb.callCanisterMethod(CanisterMethod.SearchByIndex, searchByIndexArgs);
+
+      if ("ok" in searchResult) {
+        const queryResult = searchResult.ok;
+        const data: Record<string, any> = [];
+        for (let i = 0; i < queryResult.length; i++) {
+          let obj = convertToObject(queryResult[i].id, queryResult[i].fields);
+          data.push(obj);
+       }
+       return res.status(200).json({ success: true, data, });
+      }
+    return res.status(404).json({ success: false, error: `${searchResult.err}`});
   }
 
-  if (getQuery.length > 1) {
+  if (getQuery.length > 0) {
     const searchByMultipleFieldsArgs: SearchByMultipleFieldsArgs = [
       schemaName,
       getQuery,
@@ -177,14 +185,23 @@ export const searchBooks = async(req: Request, res: Response): Promise<any> => {
     );
   
     if ("ok" in searchMultipleResult) {
-      console.log(searchMultipleResult);
-      const records = searchMultipleResult.ok.map((record) => {
-        convertToObject(record.id, record.fields);
-      });
-      return res.status(200).json({ success: true, data: records });
+    //   const records = searchMultipleResult.ok.map((record) => {
+    //     convertToObject(record.id, record.fields);
+    // });
+    const queryResult = searchMultipleResult.ok;
+    const data: Record<string, any> = [];
+    for (let i = 0; i < queryResult.length; i++) {
+      let obj = convertToObject(queryResult[i].id, queryResult[i].fields);
+      console.log(obj);
+      data.push(obj);
+    }
+      return res.status(200).json({ success: true, data, });
     } else {
       console.log(`Error: ${searchMultipleResult.err}`);
-      res.status(404).json({ success: false, data: `${searchMultipleResult.err}`})
+      return res.status(404).json({ success: false, data: `${searchMultipleResult.err}`})
     }
-  } 
+  }
+} catch (error) {
+  return res.status(400).json({ success: false, error, });
+}
 }

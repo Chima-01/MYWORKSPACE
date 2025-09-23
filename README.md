@@ -1,1 +1,1 @@
-# This repo will contain projects developed for my learrning
+# This repo will contain self developed projects for my learrning

@@ -4,10 +4,10 @@ import { verifyUser, verifyAdmin } from '../miidle_ware/verify_user';
 
 const router = Router();
 
-router.get('/', getAllBooks);
-router.get('/{bookId}',verifyUser, getBook);
+router.get('/', verifyUser, getAllBooks);
 router.post('/', verifyAdmin, createBook);
-router.delete('/{bookId}',  verifyAdmin, deleteBook);
-router.put('/{bookId}', verifyAdmin, updateBook);
+router.get('/:bookId', verifyUser, getBook);
+router.delete('/:bookId',  verifyAdmin, deleteBook);
+router.put('/:bookId', verifyAdmin, updateBook);
 
 export default router;

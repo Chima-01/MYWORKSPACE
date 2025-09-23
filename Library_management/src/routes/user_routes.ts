@@ -7,6 +7,6 @@ const router = Router();
 router.get('/', verifyAdmin, allUsers);
 router.post('/signup', signup);
 router.post('/login', login);
-router.delete('/delete', verifyAdmin, deleteUser);
+router.delete('/delete/:Id', verifyAdmin, deleteUser);
 
 export default router;

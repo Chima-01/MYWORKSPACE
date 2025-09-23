@@ -5,7 +5,6 @@ const quikdb = new QuikDB();
 
 
 export const userSchema = async (): Promise<ResultBool> => {
-  console.log("I am in userschema");
   const schemaName = 'UserSchema';
     const fields = [
       { name: 'firstname', unique: false, fieldType: 'Text' },
@@ -18,7 +17,6 @@ export const userSchema = async (): Promise<ResultBool> => {
     // Create schema
     const args: CreateSchemaArgs = [schemaName, fields, indexes];
     const createResult: ResultBool = await quikdb.callCanisterMethod(CanisterMethod.CreateSchema, args);
-    console.log('User Schema created!');
     return createResult;
 }
 
@@ -37,7 +35,6 @@ export const bookSchema = async (): Promise<ResultBool> => {
     // Create schema
     const args: CreateSchemaArgs = [schemaName, fields, indexes];
     const createResult: ResultBool = await quikdb.callCanisterMethod(CanisterMethod.CreateSchema, args);
-    console.log('Book Schema created!');
     return createResult;
 }
 

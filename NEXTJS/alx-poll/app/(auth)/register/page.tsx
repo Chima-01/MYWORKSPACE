@@ -19,7 +19,7 @@ export default function SignUpPage() {
     e.preventDefault();
     setError(null);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -36,6 +36,7 @@ export default function SignUpPage() {
         router.push('/dashboard');
       }
     } catch (err) {
+      console.log(err);
       setError('An unexpected error occurred.');
     }
   };

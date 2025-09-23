@@ -55,7 +55,7 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
       const insertResult: ResultBool = await quikdb.callCanisterMethod(CanisterMethod.CreateRecordData, createRecordArgs);
       if ("ok" in insertResult) {
         console.log('Record inserted successfully.');
-        return res.status(201).json({success: false, data: id });
+        return res.status(201).json({success: true, data: id });
       }
       console.log(insertResult.err);
       return res.status(401).json({ success: false, error: `${insertResult.err}` });
@@ -71,10 +71,11 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     return res.status(400).json({ success: false, error: `Password field required!` });
   }
 
-  const searchByIndexArgs: SearchByIndexArgs = [schemaName, 'email', email];
-  const searchResult: ResultRecords = await quikdb.callCanisterMethod(CanisterMethod.SearchByIndex, searchByIndexArgs);
+  try {
+    const searchByIndexArgs: SearchByIndexArgs = [schemaName, 'email', email];
+    const searchResult: ResultRecords = await quikdb.callCanisterMethod(CanisterMethod.SearchByIndex, searchByIndexArgs);
 
-  if ("ok" in searchResult) {
+    if ("ok" in searchResult) {
     const user = searchResult.ok[0];
     const data = convertToObject(user.id, user.fields);
     const hashPassword = data["password"];
@@ -83,12 +84,15 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     if (!match) {
       return res.status(401).json({ success: false, error: `Incorrect password!`});
     }
-    const token =  jwt.sign({ id: user.id, role: 'user' }, secretKey, {
+    const token =  jwt.sign({ id: data.id, role: 'user' }, secretKey, {
     expiresIn: '2 days' });
     return res.status(200).json({ success: true, data, token, });
   }
 
   return res.status(404).json({ success: false, error: `email not recognised` });
+} catch (error) {
+  res.status(401).json({ success: false, error, })
+}
 }
 
 export const allUsers = async (req: Request, res: Response): Promise<any> => {

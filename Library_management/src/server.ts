@@ -14,9 +14,9 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/api/books', getAllBooks);
-app.get('/api/search', searchBooks);
-app.use('/user', bookRoute);
-app.use('/user/userId/book', userRoute);
+app.get('/api/books/search', searchBooks);
+app.use('/api/user', userRoute);
+app.use('/api/user/books', bookRoute);
 
 
 
@@ -33,10 +33,14 @@ app.listen(port, async () => {
 //   } catch (err) { 
 //     console.log(`Error: ${err}`);
 //   }
+//   process.exit(1);
 // });
 
-// process.on("SIGTERM", async () => {  try {
+// process.on("SIGTERM", async () => { 
+// try {
 //   await deleteAllSchema()
-//   } catch (err) { 
-//     console.log(`Error: ${err}`);
-//   }});
+// } catch (err) { 
+//   console.log(`Error: ${err}`);
+// }
+//  process.exit(1);
+// });
