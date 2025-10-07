@@ -1,61 +1,27 @@
 'use client';
 
 import { createClient } from '@/utils/supabase/client';
-import { useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Success from '@/features/success';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
+import { handleSignUp, handleSocialLogin }  from '@/features/auth/authentication';
 
 export default function SignUpPage() {
   const [lastName, setLastName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [state, action, pending] = useActionState(handleSignUp, undefined);
   const router = useRouter();
-  const supabase = createClient();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        }
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      console.log(err);
-      setError('An unexpected error occurred.');
-    }
-  };
-
-  const handleSocialLogin = async (provider: 'github' | 'google') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/callback`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
-    }
-  };
+  if (state?.success) { 
+    return (<Success />);
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
+  ( <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 transform transition-transform duration-300 hover:scale-[1.02]">
         <h1 className="text-3xl font-extrabold text-center text-gray-900 mb-2">
           Create an Account
@@ -64,49 +30,70 @@ export default function SignUpPage() {
           Sign up to get started.
         </p>
 
-        {error && (
+        {state?.message && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4">
-            <span className="block sm:inline">{error}</span>
+            <span className="block sm:inline">{state.message}</span>
           </div>
         )}
 
-        <form onSubmit={handleSignUp} className="space-y-4">
+        <form action={action} className="space-y-4">
           <div className="flex space-x-4">
-            <input
-            type="text"
-            placeholder="Last name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            required
-          />
-          <input
-            type="text"
-            placeholder="First name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            required
-          />
+            <div>
+              <input
+                type="text"
+                name='lastname'
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                required
+              />
+              {state?.error?.lastname && (<div className="text-red-600 text-sm mt-1">{state.error.lastname[0]}</div>)}
+            </div>
+            <div>
+              <input
+                type="text"
+                name='firstname'
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                required
+              />
+              {state?.error?.firstname && (<div className="text-red-600 text-sm mt-1">{ state.error.firstname[0] }</div>)}
+            </div>
           </div>
-          <input
+          <div>
+           <input
             type="email"
             placeholder="Email"
+            name='email'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             required
-          />
+           />
+           { state?.error?.email && (<div className='text-red-500 text-sm mt-1'>{state.error.email[0]}</div>)}
+          </div>
+          <div>
             <input
             type="password"
+            name='password'
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             required
           />
+          <ul>
+             { state?.error?.password && (<div className='text-red-500 text-sm mt-1'>{state.error.password.map((text, idx) => (
+            <li key={idx}>{text}</li>
+          ))}</div>)}
+          </ul>
+          </div>
+           
           <button
-            type="submit"
+            type="submit"  disabled={pending}
             className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
           >
             Sign Up
@@ -147,5 +134,6 @@ export default function SignUpPage() {
         </p>
       </div>
     </div>
+   )
   );
 }

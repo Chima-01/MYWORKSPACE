@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicPaths = ['/', '/login', '/register', '/callback', '/callback/confirm'];
+  const publicPaths = ['/', '/login', '/register', '/callback', '/callback/confirm', '/register/success'];
 
 // if user is not logged in and is requesting the root path, allow it
   if (!user && !publicPaths.includes(request.nextUrl.pathname)) {
@@ -45,7 +45,11 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
-
+  if (user && publicPaths.includes(request.nextUrl.pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
