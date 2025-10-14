@@ -1,12 +1,12 @@
 'use client';
 
-import { createClient } from '@/utils/supabase/client';
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Success from '@/features/success';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
-import { handleSignUp, handleSocialLogin }  from '@/features/auth/authentication';
+import { handleSignUp }  from '@/features/auth/authentication';
+import { handleSocialLogin } from '@/features/auth/socialAuth';
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignUpPage() {
   const [lastName, setLastName] = useState('');
@@ -15,10 +15,14 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [state, action, pending] = useActionState(handleSignUp, undefined);
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
-  if (state?.success) { 
-    return (<Success />);
-  }
+  useEffect(() => {
+    if (state?.success) { 
+      return router.push('/register/success');
+    }
+  }, [state?.success, router]);
+
 
   return (
   ( <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
@@ -75,9 +79,9 @@ export default function SignUpPage() {
            />
            { state?.error?.email && (<div className='text-red-500 text-sm mt-1'>{state.error.email[0]}</div>)}
           </div>
-          <div>
+          <div className='relative'>
             <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name='password'
             placeholder="Password"
             value={password}
@@ -85,6 +89,13 @@ export default function SignUpPage() {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             required
           />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+        >
+        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
           <ul>
              { state?.error?.password && (<div className='text-red-500 text-sm mt-1'>{state.error.password.map((text, idx) => (
             <li key={idx}>{text}</li>
@@ -93,7 +104,8 @@ export default function SignUpPage() {
           </div>
            
           <button
-            type="submit"  disabled={pending}
+            type="submit"
+            disabled={pending}
             className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
           >
             Sign Up

@@ -12,7 +12,6 @@ export async function GET(request: Request) {
     next = '/dashboard';
   }
 
-  console.log('This the code', code);
 
   if (code) {
     const supabase = await createClient()

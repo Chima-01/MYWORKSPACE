@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function Success() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">

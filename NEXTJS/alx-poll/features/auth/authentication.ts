@@ -3,10 +3,10 @@
 import { createClient } from '@/utils/supabase/server';
 import {signUpFormState, SignupFormSchema } from './authSchema';
 import { z } from 'zod';
+import { redirect } from 'next/navigation';
 
 
-
-const handleSignUp = async (state: signUpFormState, formData: FormData) => {
+export const handleSignUp = async (state: signUpFormState, formData: FormData) => {
   const validateFields = SignupFormSchema.safeParse({
     lastname: formData.get('lastname'),
     firstname: formData.get('firstname'),
@@ -46,19 +46,72 @@ const handleSignUp = async (state: signUpFormState, formData: FormData) => {
     }
   };
 
-const handleSocialLogin = async (provider: 'github' | 'google') => {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-    redirectTo: `${window.location.origin}/callback`,
-    },
+export const handleLogin = async (state: signUpFormState, formData: FormData) => {
+  const validateFields = SignupFormSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password')
   });
 
+  if (!validateFields.success) {
+    console.log(validateFields?.data, formData.get('email'));
+    const flattened = z.flattenError(validateFields.error);
+    return { error: flattened.fieldErrors };
+  }
+
+  const { email, password } = validateFields.data;
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
     if (error) {
-      return { error: error.message };
+      return (error.name === 'email_not_confirmed' ? { message: 'This Email has not been verified!' }: {message: error?.message})
     }
-  };
+  
+    redirect('/dashboard');
+    } catch (err) {
+      console.log(err);
+      return { message: 'An unexpected error occurred. Refresh and try again.' }
+    }
+}
 
+export const handleSignout = async () => {
+  const supabase = await createClient();
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    redirect('/login');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+}
 
-  export { handleSignUp, handleSocialLogin };
+export const handlePasswordReset = async (state: signUpFormState, formData: FormData) => {
+  const validateFields = SignupFormSchema.safeParse({
+    email: formData.get('email'),
+  });
+  if (!validateFields.success) {
+    console.log(validateFields?.data, formData.get('email'));
+      const flattened = z.flattenError(validateFields.error);
+      return { error: flattened.fieldErrors };
+  }
+  const { email } = validateFields.data;
+  const supabase = await createClient();
+    try { 
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+      });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+    }
+}
+
+export const getUser = async () => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
