@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const user = await getUser();
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-8">
-      <h1 className="text-2xl font-bold text-blue-500">
+      <h1 className="text-xl font-bold text-blue-500 md:text-3xl">
         Welcome to your Dashboard, {user?.user_metadata?.full_name || user?.user_metadata?.firstname}!
       </h1>
 

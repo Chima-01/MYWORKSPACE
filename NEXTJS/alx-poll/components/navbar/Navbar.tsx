@@ -16,8 +16,10 @@ export default function Navbar() {
   useEffect(() => {
     // Fetch current user
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    setUser(data.user);
     });
+
+
 
     // Listen for auth changes
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -33,16 +35,14 @@ export default function Navbar() {
 
       {user ? (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="hover:underline">
-            Polls
-          </Link>
-          <Link href="/polls" className="hover:underline">
-            Survey
+          <Link href="/feedback" className="hover:underline">
+            Feedback
           </Link>
           <Button
             variant="outline"
             onClick={async () => {
-               setUser(null);
+              setUser(null);
+              router.refresh();
               router.push('/login');
               await supabase.auth.signOut();
             }}
