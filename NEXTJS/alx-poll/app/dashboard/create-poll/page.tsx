@@ -1,14 +1,19 @@
 "use client";
 // import { useForm, SubmitHandler } from "react-hook-form";
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PollFormInputs } from "@/features/auth/authSchema";
+import { initialPollState, usePoll } from "@/features/hooks/createPollHooks";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import{ handlePollSubmit } from "@/features/createPollFeatures/createPollSubmit";
+import { durationMap } from "@/features/hooks/createPollHooks";
+
 import { Switch } from "@/components/ui/switch";
 import { FaTrash, FaPlus, FaCheck, FaEdit } from "react-icons/fa";
+import { toast } from "sonner";
+
 import {
   Select,
   SelectContent,
@@ -17,81 +22,83 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import handleCreatePollAuth from "@/features/createPollFeatures/createPollAuth";
-
-
+import { tr } from "zod/v4/locales";
 
 const CreatePollpage = () => {
-  const [showMessage, setShowMessage] = useState(false);
   const [state, action, pending] = useActionState(handleCreatePollAuth, undefined);
-  const [poll, setPoll] = useState<PollFormInputs>({
-    title: "",
-    description: "",
-    questionType: "",
-    options: undefined,
-    anonymous: true,
-    min: 1,
-    max: 5,
-    openCharLimit: undefined,
-    startTime: "",
-    duration: ""
-  });
+  const {
+    poll,
+    setPoll,
+    addOption,
+    removeOption,
+    handleOptionChange,
+    toggleOptionsEdit,
+    setQuestionType,
+    setStartTime,
+    setDuration,
+    setOpenCharLimit,
+    setMin,
+    setMax,
+    setTitle,
+    setDescription
+  } = usePoll(initialPollState);
+  // const [showMessage, setShowMessage] = useState(false);
+  const [pollSaveStatus, setPollSaveStatus] = useState<boolean>(false);
 
-  
-  const handleOptionChange = (index: number, value: string) => {
-    const newOptions =  [...(poll.options) ?? []];
-    newOptions[index] = { ...newOptions[index], optionText: value };
-    setPoll({ ...poll, options: newOptions });
-  };
+  useEffect(() => {
+    ( async () => {
+      if (state?.success) {
+         toast.info("Validation passed. Saving poll to the database...");
+         try {
+          const status = await handlePollSubmit(poll, setPollSaveStatus);
+          if (status?.success) {
+            toast.success("Poll submitted successfully!");
+            setPoll(initialPollState);
+          } else {
+            toast.error(`Poll submission failed. Please try again ${status?.error}`)
+          }
+        } catch (err) {
+          console.log("Poll DB error:", err);
+          toast.error("Poll submission failed. See console for details.");
+        }
+      }
+    })();
+  }, [state])
 
-   const handleAttempt = () => {
-    // When user tries to toggle, show message briefly
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 2500); // disappear after 2.5s
-  };
+  useEffect(() => {
+    if (pollSaveStatus) {
+      toast.info("start time adjusted to at 1 minute from now.");
+      setPollSaveStatus(false);
+    }
+  }, [pollSaveStatus]);
 
-  const addOption = () => {
-    const newOptions = [{ optionText: "", isChecked: false, error: undefined }];
-
-    setPoll({ ...poll, options: [...(poll.options ?? []), ...newOptions]});
+  function expiresInMs(duration: string): number{
+    return durationMap[duration as keyof typeof durationMap] || 0;
   }
 
-  const removeOption = (index: number) => {
-    const newOptions = poll.options?.filter((_, i) => i !== index);
-    setPoll({ ...poll, options: newOptions });
-  };
+
+  // const handleAttempt = () => {
+  //   // When user tries to toggle, show message briefly
+  //   setShowMessage(true);
+  //   setTimeout(() => setShowMessage(false), 2500); // disappear after 2.5s
+  // };
 
    const handleSubmit = async () => {
     // Example: Call your Supabase function or API route here
-    console.log("Poll data:", poll);
-  };
+    toast.info("Submitting poll...");
 
-  const handleEditOptions = (index: number) => {
-    if (!poll.options || !poll.options[index]) return;
-
-    const currentOption = poll.options[index];
-    const isEmpty = currentOption?.optionText.trim() === "";
-
-    const newOptions = poll.options?.map((option, idx) => {
-      if (idx === index) {
-        return {
-          ...option,
-          error: isEmpty ? "Input can not be empty." : undefined,
-          isChecked: isEmpty ? false : !option.isChecked,
-        }
+    console.log("Poll Data:", poll);
+    if (state?.success) {
+    const status = await handlePollSubmit(poll, setPollSaveStatus);
+      if (!status) {
+        toast.error("Poll submission failed. Please try again.");
       }
-      return option;
-    });
-  
-    setPoll({ ...poll, options: newOptions });
+    
+      toast.success("Poll submitted successfully!");
+    } else {
+      toast.error("Poll submission failed due to validation errors. Please fix the errors and try again.");
+    }
   };
-
-  const handleQuestionTypeChange = (value: string) => {
-     const updatedPoll: PollFormInputs = { ...poll, questionType: value };
-    if (value !== "single" && value !== "multiple") {
-      updatedPoll.options = undefined; 
-    } 
-    setPoll(updatedPoll);
-  }
 
   return (
     <main>
@@ -109,7 +116,7 @@ const CreatePollpage = () => {
               placeholder="Enter poll title"
               value={poll.title}
               maxLength={40}
-              onChange={(e) => setPoll({ ...poll, title: e.target.value })}
+              onChange={(e) => setTitle(e.target.value )}
               required
             />
             {state?.error?.title && (<p className="text-red-500">{state.error.title}</p>)}
@@ -121,15 +128,15 @@ const CreatePollpage = () => {
               value={poll.description}
               name="description"
               maxLength={200}
-              onChange={(e) => setPoll({ ...poll, description: e.target.value })}
+              onChange={(e) => setDescription(e.target.value )}
             />
             {state?.error?.description && (<p className="text-red-500">{state.error.description}</p>)}
           </div>
           <div>
             <Label className="font-medium mb-3">Question Type</Label>
             <Select
-                onValueChange={(value) => handleQuestionTypeChange(value)}
-                value={poll.questionType || ""}
+                onValueChange={(value) => setQuestionType(value)}
+                value={poll.questionType ?? undefined}
                 name="questionType"
                 required
             >
@@ -137,7 +144,6 @@ const CreatePollpage = () => {
                 <SelectValue placeholder="Select Question Type: " />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="---">---</SelectItem>
                 <SelectItem value="multiple">Multiple Choice</SelectItem>
                 <SelectItem value="single">Single Selection</SelectItem>
                 <SelectItem value="rating">Rating</SelectItem>
@@ -158,14 +164,13 @@ const CreatePollpage = () => {
                       <Input
                         placeholder={`Option ${index + 1}`}
                         value={ option.optionText }
-                        name="options"
                         onChange={(e) => handleOptionChange(index, e.target.value)}
                       />
                       { option.error && <p className="text-red-500">{option.error}</p> }
                     </div> 
                     : (<p className="text-gray-500">{poll.options?.[index].optionText}</p>)
                   }
-                  <Button size="icon" variant="ghost" onClick={() => handleEditOptions(index)}>
+                  <Button size="icon" variant="ghost" onClick={() => toggleOptionsEdit(index)}>
                     { !option.isChecked ? <FaCheck className="w-4 h-4 text-green-500" /> : <FaEdit className="w-4 h-4 text-blue-500" /> }
                   </Button>
                   <Button
@@ -178,6 +183,14 @@ const CreatePollpage = () => {
                   </Button>
                 </div>
               ))}
+              <div>
+                <Input
+                type="hidden"
+                name="options"
+                value={poll.options ? JSON.stringify(poll.options.map((value) => value.optionText)) : ""} 
+                />
+              </div>
+             
               {
                 (poll.options?.length ?? 0) < 5 ? (
                 <Button variant="outline" size="sm" onClick={addOption}>
@@ -185,6 +198,7 @@ const CreatePollpage = () => {
                 </Button>)
                 : <div className="text-sm text-red-600">Maximum of 5 options allowed.</div>
               }
+               { state?.error?.options && (<p className="text-red-500">{state.error.options}</p>)}
             </div>
           )}
           {
@@ -198,7 +212,7 @@ const CreatePollpage = () => {
                 min={1}
                 max={10}
                 value={poll.min ?? ""}
-                onChange={(e) => setPoll({ ...poll, min: (e.target.value === "") ? undefined : Number(e.target.value) })}
+                onChange={(e) => setMin(Number(e.target.value))}
                 className="bg-white"
                 disabled={true}
               />
@@ -208,7 +222,7 @@ const CreatePollpage = () => {
                 min={1}
                 max={10}
                 value={poll.max ?? ""}
-                onChange={(e) => setPoll({...poll, max: (e.target.value === "") ? undefined : Number(e.target.value)})}
+                onChange={(e) => setMax(Number(e.target.value))}
                 className="bg-white"
                 disabled={true}
               />
@@ -225,7 +239,7 @@ const CreatePollpage = () => {
                   min={1}
                   max={500}
                   value={poll.openCharLimit ?? ""}
-                  onChange={(e) => setPoll({ ...poll, openCharLimit: (e.target.value === "") ? undefined : Number(e.target.value) }) }
+                  onChange={(e) => setOpenCharLimit(Number(e.target.value))}
                   className="mb-2 bg-white" 
                 />
               </div>
@@ -240,7 +254,7 @@ const CreatePollpage = () => {
                 name="startTime"
                 value={poll.startTime || ""}
                 placeholder="Insert start time of poll"
-                onChange={(e) => setPoll({ ...poll, startTime: e.target.value })}
+                onChange={(e) => setStartTime(e.target.value)}
                 required
               />
               {state?.error?.startTime && (<p className="text-red-500">{state.error.startTime}</p>)}
@@ -248,15 +262,14 @@ const CreatePollpage = () => {
             <div>
               <Label className="font-medium mb-3">Duration</Label>
               <Select
-                onValueChange={(value) => setPoll({ ...poll, duration: value })}
-                defaultValue={poll.duration || ""}
+                onValueChange={(value) => setDuration(value)}
+                value={poll.duration ?? undefined}
                 name="duration"
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Duration of Poll" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="---">---</SelectItem>
                   <SelectItem value="1m">1 Minute</SelectItem>
                   <SelectItem value="5m">5 Minutes</SelectItem>
                   <SelectItem value="10m">10 Minutes</SelectItem>
@@ -270,24 +283,26 @@ const CreatePollpage = () => {
               {state?.error?.duration && (<p className="text-red-500">{state.error.duration}</p>)}
             </div>
           </div>
+          { /**Poll start time and duration Info */}
+          {poll.startTime && poll.duration && (
+            <div className="text-sm text-gray-600 mt-2">
+              Poll will start on <strong>{new Date(poll.startTime).toLocaleString()}</strong>&nbsp;
+              and end on <strong>{new Date(new Date(poll.startTime).getTime() + expiresInMs(poll.duration)).toLocaleString()}</strong>.
+            </div>
+          )}
            {/* Settings */}
           <div className="flex items-center justify-between relative">
             <Label className="font-medium">Allow Anonymous Voting</Label>
             <Switch
               checked={true}
-              onCheckedChange={handleAttempt}
-              disabled={false}
+              disabled={true}
             />
-            {showMessage && 
-              <div className="absolute right-0 mt-2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg shadow-md animate-fade-in">
-                (This setting is currently fixed to anonymous voting only.)
-              </div>
-            }
           </div>
 
           {/* Submit Button */}
-          <Button className="w-full" onClick={handleSubmit} type="submit" name="createPoll">
-            Create Poll
+
+          <Button className="w-full" onClick={handleSubmit} type="submit" name="createPoll" disabled={pending}>
+            { pending ? "Validating..." : "Create Poll" }
           </Button>
         </CardContent>
       </Card>

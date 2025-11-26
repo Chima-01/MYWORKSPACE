@@ -1,6 +1,5 @@
 'use client';
 
-import { createClient } from '@/utils/supabase/client';
 import { useState, useActionState } from 'react';
 import { handleSocialLogin } from '@/features/auth/socialAuth';
 import { handleLogin } from '@/features/auth/authentication';

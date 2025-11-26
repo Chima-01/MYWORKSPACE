@@ -20,6 +20,7 @@ export const SignupFormSchema = z.object({
 const pollOptionSchema = z.object({
   optionText: z.string().min(1, { message: 'Option text cannot be empty.'}).trim(),
   isChecked: z.boolean(),
+  error: z.string().optional()
 })
 
 const minimumStartTime = new Date(Date.now() - 1000);
@@ -53,7 +54,7 @@ export type signUpFormState =
 
 
 
-type optionsType = {
+export type optionsType = {
   optionText: string;
   isChecked: boolean;
   error?: string;
@@ -62,13 +63,13 @@ type optionsType = {
 export type PollFormInputs = { 
   title: string;
   description?: string;
-  questionType: string;
-  options?: optionsType[];
+  questionType: string | undefined;
+  options?: optionsType[] | undefined;
   min?: number;
   max?: number;
   openCharLimit?: number;
   startTime: string;
-  duration: string;
+  duration: string | undefined;
   anonymous?: boolean;
 };
 
@@ -78,8 +79,10 @@ export type PollFormInputs = {
         title?: string[];
         description?: string[];
         questionType?: string[];
+        options?: string[];
         startTime?: string[];
         duration?: string[];
       };
       success?: boolean;
   } | undefined;
+
