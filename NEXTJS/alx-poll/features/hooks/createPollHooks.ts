@@ -1,5 +1,4 @@
-import { optionsType, PollFormInputs } from "@/features/auth/authSchema";
-import { Value } from "@radix-ui/react-select";
+import { PollFormInputs } from "@/features/auth/authSchema";
 import { useState } from "react";
 
 export const initialPollState: PollFormInputs = {
