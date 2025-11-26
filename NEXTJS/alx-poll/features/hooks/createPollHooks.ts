@@ -118,11 +118,13 @@ export const usePoll = (initialState: PollFormInputs = initialPollState) => {
 
 }
 
-export const pollstatus = (OneMinuteAdded: boolean) => {
+export const pollstatus = (OneMinuteAdded: boolean = false) => {
   const [oneMinuteAdded, setOneMinuteAdded] = useState(OneMinuteAdded);
+
+  const changeOneminuteStatus = () => setOneMinuteAdded((prev) => !prev );
 
   return {
     oneMinuteAdded,
-    setOneMinuteAdded
+    changeOneminuteStatus
   }
 }

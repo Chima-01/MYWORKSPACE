@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import handleCreatePollAuth from "@/features/createPollFeatures/createPollAuth";
-import { tr } from "zod/v4/locales";
 
 const CreatePollpage = () => {
   const [state, action, pending] = useActionState(handleCreatePollAuth, undefined);
