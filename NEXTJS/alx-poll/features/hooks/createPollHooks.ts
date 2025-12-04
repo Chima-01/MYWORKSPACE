@@ -4,14 +4,14 @@ import { useState } from "react";
 export const initialPollState: PollFormInputs = {
     title: "",
     description: "",
-    questionType: undefined,
-    options: undefined,
+    questionType: "",
+    options: [],
     anonymous: true,
     min: 1,
     max: 5,
-    openCharLimit: undefined,
+    openCharLimit: 200,
     startTime: "",
-    duration: undefined
+    duration: ""
   }
 
 

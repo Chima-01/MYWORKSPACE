@@ -8,25 +8,19 @@ const handleCreatePollAuth = async (state: createPollState, formData: FormData) 
     title: formData.get("title"),
     description: formData.get("description") || undefined,
     questionType: formData.get("questionType"),
-    optionsJson: formData.get("options"),
-    min: formData.get("min"),
-    max: formData.get("max"),
-    openCharLimit: formData.get("openCharLimit"),
+    options: formData.get("options") as string,
+    min: formData.get("min") || 1,
+    max: formData.get("max") || 5,
+    openCharLimit: Number(formData.get("openCharLimit")) || 200,
     startTime: formData.get("startTime"),
     duration: formData.get("duration")
   };
 
-  console.log('Form Data:', raw.duration, raw.questionType);
-  const { title, description, questionType, optionsJson, startTime, duration } = raw;
+  const optionsJson = raw.options ? JSON.parse(raw.options) : [];
+  console.log('Form Data:', raw.duration, raw.questionType, raw.options, raw.duration, raw.title);
   
 
-  const validateFields = createPollSchema.safeParse({ 
-    title,
-    ...( description && { description }),
-    questionType,
-    startTime,
-    duration,
-  });
+  const validateFields = createPollSchema.safeParse({...raw, options: optionsJson });
 
   if (!validateFields.success) {
     const flattened = z.flattenError(validateFields.error);
@@ -34,17 +28,17 @@ const handleCreatePollAuth = async (state: createPollState, formData: FormData) 
     return { error: flattened.fieldErrors };
   }
 
-    if (questionType === 'single' || questionType === 'multiple') {
-      const optionsArray = optionsJson ? JSON.parse(optionsJson as string) : [];  
-      console.log('options', optionsArray);
-      if (optionsArray.length < 2) { 
-        return { 
-          error: {
-            options: ['At least two options are required for the selected question type.']
-          }
-        }
-    }      
-  }
+  //   if (questionType === 'single' || questionType === 'multiple') {
+  //     const optionsArray = optionsJson ? JSON.parse(optionsJson as string) : [];  
+  //     console.log('options', optionsArray);
+  //     if (optionsArray.length < 2) { 
+  //       return { 
+  //         error: {
+  //           options: ['At least two options are required for the selected question type.']
+  //         }
+  //       }
+  //   }      
+  // }
 
   return { success: true };
 

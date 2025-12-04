@@ -1,6 +1,6 @@
 "use client";
 // import { useForm, SubmitHandler } from "react-hook-form";
-import { useState, useActionState, useEffect, useRef } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { initialPollState, usePoll } from "@/features/hooks/createPollHooks";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,10 +134,10 @@ const CreatePollpage = () => {
           <div>
             <Label className="font-medium mb-3">Question Type</Label>
             <Select
-                onValueChange={(value) => setQuestionType(value)}
-                value={poll.questionType ?? undefined}
+                onValueChange={(value) => setQuestionType(value) }
+                value={poll.questionType ?? ""}
                 name="questionType"
-                required
+                defaultValue="multiple"
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select Question Type: " />
@@ -165,8 +165,8 @@ const CreatePollpage = () => {
                         value={ option.optionText }
                         onChange={(e) => handleOptionChange(index, e.target.value)}
                       />
-                      { option.error && <p className="text-red-500">{option.error}</p> }
-                    </div> 
+                      { state?.error?.options && (<p className="text-red-500">{(poll.options && poll.options?.[index].optionText.length < 1) ? "Input cannot be empty" : "Please confirm this option before proceeding."}</p>)}
+                    </div>
                     : (<p className="text-gray-500">{poll.options?.[index].optionText}</p>)
                   }
                   <Button size="icon" variant="ghost" onClick={() => toggleOptionsEdit(index)}>
@@ -186,7 +186,7 @@ const CreatePollpage = () => {
                 <Input
                 type="hidden"
                 name="options"
-                value={poll.options ? JSON.stringify(poll.options.map((value) => value.optionText)) : ""} 
+                value={poll.options ? JSON.stringify(poll.options.map((value) => value)) : ""} 
                 />
               </div>
              
@@ -197,7 +197,7 @@ const CreatePollpage = () => {
                 </Button>)
                 : <div className="text-sm text-red-600">Maximum of 5 options allowed.</div>
               }
-               { state?.error?.options && (<p className="text-red-500">{state.error.options}</p>)}
+               {state?.error?.options && (<p className="text-red-500">{(poll.options && poll.options?.length <= 1) && state.error.options.at(-1)}</p>)}
             </div>
           )}
           {
@@ -261,9 +261,11 @@ const CreatePollpage = () => {
             <div>
               <Label className="font-medium mb-3">Duration</Label>
               <Select
-                onValueChange={(value) => setDuration(value)}
-                value={poll.duration ?? undefined}
+                onValueChange={ (value) => setDuration(value) }
+                value={poll.duration ?? ""}
+                defaultValue="1m"
                 name="duration"
+                required
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Duration of Poll" />
