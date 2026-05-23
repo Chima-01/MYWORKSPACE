@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "striped-crocodile-996.convex.cloud",
+        hostname: "https://sensible-parakeet-480.convex.cloud",
         port: "",
       },
     ] 
